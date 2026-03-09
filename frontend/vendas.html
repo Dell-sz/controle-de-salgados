@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendas - Universo da Empada</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.html">
+                <i class="fas fa-utensils me-2"></i>Universo da Empada
+            </a>
+            <div class="d-flex">
+                <span class="navbar-text me-3" id="usuarioNome"></span>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i> Sair
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-shopping-cart text-success me-2"></i>Vendas</h2>
+            <button class="btn btn-success" onclick="abrirModalVenda()">
+                <i class="fas fa-plus me-1"></i>Nova Venda
+            </button>
+        </div>
+
+        <!-- Filt<div class="cardros -->
+         mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Data Início</label>
+                        <input type="date" class="form-control" id="filtroDataInicio">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Data Fim</label>
+                        <input type="date" class="form-control" id="filtroDataFim">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="filtroStatus">
+                            <option value="">Todos</option>
+                            <option value="true">Pago</option>
+                            <option value="false">Pendente</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn btn-primary w-100" onclick="carregarVendas()">
+                            <i class="fas fa-filter me-1"></i>Filtrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Vendas -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="tabelaVendas">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Data</th>
+                                <th>Destino</th>
+                                <th>Forma Pagamento</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" class="text-center py-4">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Venda -->
+    <div class="modal fade" id="vendaModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Nova Venda</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="vendaForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Data</label>
+                                <input type="date" class="form-control" id="vendaData" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Forma de Pagamento</label>
+                                <select class="form-select" id="vendaForma" required>
+                                    <option value="dinheiro">Dinheiro</option>
+                                    <option value="pix">PIX</option>
+                                    <option value="cartao_credito">Cartão Crédito</option>
+                                    <option value="cartao_debito">Cartão Débito</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="vendaStatus">
+                                    <option value="true">Pago</option>
+                                    <option value="false">Pendente</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        <h6>Itens da Venda</h6>
+                        
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-5">
+                                <select class="form-select" id="vendaProduto">
+                                    <option value="">Selecione o produto</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" class="form-control" id="vendaQuantidade" placeholder="Qtd">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" step="0.01" class="form-control" id="vendaDesconto" placeholder="Desconto R$" value="0">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-primary w-100" onclick="adicionarItemVenda()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive mb-3">
+                            <table class="table table-sm" id="tabelaItensVenda">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Qtd</th>
+                                        <th>Valor Unit.</th>
+                                        <th>Desconto</th>
+                                        <th>Subtotal</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="text-end">
+                            <h4>Total: R$ <span id="vendaTotal">0,00</span></h4>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Registrar Venda</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        if (!api.getToken()) window.location.href = 'index.html';
+        document.getElementById('usuarioNome').textContent = api.getUsuario()?.nome || '';
+        
+        // Setar data de hoje
+        document.getElementById('vendaData').valueAsDate = new Date();
+        
+        let vendaModal;
+        let itensVenda = [];
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            vendaModal = new bootstrap.Modal(document.getElementById('vendaModal'));
+            carregarVendas();
+            carregarProdutosVenda();
+            document.getElementById('vendaForm').addEventListener('submit', salvarVenda);
+        });
+        
+        async function carregarVendas() {
+            try {
+                const params = new URLSearchParams();
+                if (document.getElementById('filtroDataInicio').value) 
+                    params.append('data_inicio', document.getElementById('filtroDataInicio').value);
+                if (document.getElementById('filtroDataFim').value) 
+                    params.append('data_fim', document.getElementById('filtroDataFim').value);
+                if (document.getElementById('filtroStatus').value) 
+                    params.append('pago', document.getElementById('filtroStatus').value);
+                
+                const vendas = await api.get('/saidas?' + params.toString());
+                const tbody = document.querySelector('#tabelaVendas tbody');
+                
+                if (vendas.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Nenhuma venda encontrada</td></tr>';
+                    return;
+                }
+                
+                const formas = {
+                    'dinheiro': '💵',
+                    'pix': '📱',
+                    'cartao_credito': '💳',
+                    'cartao_debito': '💳'
+                };
+                
+                tbody.innerHTML = vendas.map(v => `
+                    <tr>
+                        <td><strong>#${v.id}</strong></td>
+                        <td>${formatarData(v.data)}</td>
+                        <td>${v.destino_nome || '-'}</td>
+                        <td>${formas[v.forma_pagamento] || ''} ${v.forma_pagamento}</td>
+                        <td>R$ ${parseFloat(v.valor_total).toFixed(2).replace('.', ',')}</td>
+                        <td>${v.pago ? '<span class="badge bg-success">Pago</span>' : '<span class="badge bg-warning">Pendente</span>'}</td>
+                        <td>
+                            ${!v.pago ? `<button class="btn btn-sm btn-success" onclick="marcarPago(${v.id})" title="Marcar pago">
+                                <i class="fas fa-check"></i>
+                            </button>` : ''}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                alert('Erro ao carregar vendas: ' + error.message);
+            }
+        }
+        
+        async function carregarProdutosVenda() {
+            try {
+                const produtos = await api.get('/produtos');
+                const select = document.getElementById('vendaProduto');
+                select.innerHTML = '<option value="">Selecione o produto</option>' + 
+                    produtos.map(p => `<option value="${p.id}" data-valor="${p.valor_unitario}">${p.nome} - R$ ${parseFloat(p.valor_unitario).toFixed(2)}</option>`).join('');
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+        
+        function abrirModalVenda() {
+            document.getElementById('vendaForm').reset();
+            document.getElementById('vendaData').valueAsDate = new Date();
+            itensVenda = [];
+            atualizarTabelaItensVenda();
+            vendaModal.show();
+        }
+        
+        function adicionarItemVenda() {
+            const produtoSelect = document.getElementById('vendaProduto');
+            const produtoId = produtoSelect.value;
+            const produtoNome = produtoSelect.options[produtoSelect.selectedIndex].text;
+            const valorUnitario = parseFloat(produtoSelect.options[produtoSelect.selectedIndex].dataset.valor);
+            const quantidade = parseInt(document.getElementById('vendaQuantidade').value);
+            const desconto = parseFloat(document.getElementById('vendaDesconto').value) || 0;
+            
+            if (!produtoId || !quantidade) {
+                alert('Selecione o produto e quantidade');
+                return;
+            }
+            
+            itensVenda.push({
+                produto_id: parseInt(produtoId),
+                produto_nome: produtoNome,
+                quantidade: quantidade,
+                valor_unitario: valorUnitario,
+                desconto: desconto
+            });
+            
+            atualizarTabelaItensVenda();
+            
+            document.getElementById('vendaQuantidade').value = '';
+            document.getElementById('vendaDesconto').value = '0';
+        }
+        
+        function atualizarTabelaItensVenda() {
+            const tbody = document.querySelector('#tabelaItensVenda tbody');
+            let total = 0;
+            
+            tbody.innerHTML = itensVenda.map((item, index) => {
+                const subtotal = (item.quantidade * item.valor_unitario) - item.desconto;
+                total += subtotal;
+                return `
+                    <tr>
+                        <td>${item.produto_nome}</td>
+                        <td>${item.quantidade}</td>
+                        <td>R$ ${item.valor_unitario.toFixed(2)}</td>
+                        <td>R$ ${item.desconto.toFixed(2)}</td>
+                        <td>R$ ${subtotal.toFixed(2)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" onclick="removerItemVenda(${index})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            document.getElementById('vendaTotal').textContent = total.toFixed(2).replace('.', ',');
+        }
+        
+        function removerItemVenda(index) {
+            itensVenda.splice(index, 1);
+            atualizarTabelaItensVenda();
+        }
+        
+        async function salvarVenda(e) {
+            e.preventDefault();
+            
+            if (itensVenda.length === 0) {
+                alert('Adicione pelo menos um item');
+                return;
+            }
+            
+            let total = 0;
+            itensVenda.forEach(item => {
+                total += (item.quantidade * item.valor_unitario) - item.desconto;
+            });
+            
+            const dados = {
+                data: document.getElementById('vendaData').value,
+                forma_pagamento: document.getElementById('vendaForma').value,
+                pago: document.getElementById('vendaStatus').value === 'true',
+                valor_total: total,
+                valor_pago: document.getElementById('vendaStatus').value === 'true' ? total : 0,
+                itens: itensVenda
+            };
+            
+            try {
+                await api.post('/saidas', dados);
+                vendaModal.hide();
+                carregarVendas();
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        }
+        
+        async function marcarPago(id) {
+            if (!confirm('Marcar esta venda como paga?')) return;
+            
+            try {
+                await api.put('/saidas/' + id + '/status', { pago: true });
+                carregarVendas();
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        }
+        
+        function formatarData(dataStr) {
+            if (!dataStr) return '';
+            return new Date(dataStr).toLocaleDateString('pt-BR');
+        }
+    </script>
+</body>
+</html>
+

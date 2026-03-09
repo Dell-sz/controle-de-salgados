@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Universo da Empada</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-utensils me-2"></i>Universo da Empada
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="dashboard.html">
+                            <i class="fas fa-home me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="produtos.html">
+                            <i class="fas fa-box me-1"></i> Produtos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="producao.html">
+                            <i class="fas fa-industry me-1"></i> Produção
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="vendas.html">
+                            <i class="fas fa-shopping-cart me-1"></i> Vendas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="relatorios.html">
+                            <i class="fas fa-chart-bar me-1"></i> Relatórios
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <span class="navbar-text me-3" id="usuarioNome"></span>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                        <i class="fas fa-sign-out-alt me-1"></i> Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Loading Spinner -->
+    <div class="spinner-overlay" id="loadingSpinner">
+        <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Carregando...</span>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div class="container-fluid p-4">
+        <h2 class="mb-4">
+            <i class="fas fa-chart-line text-success me-2"></i>Dashboard
+        </h2>
+        
+        <!-- Cards de Resumo -->
+        <div class="row mb-4 g-3">
+            <div class="col-6 col-lg-3">
+                <div class="card stat-card bg-success text-white h-100">
+                    <div class="card-body">
+                        <small class="text-white-50">Produção Hoje (Massa)</small>
+                        <h3 id="massaHoje">0 kg</h3>
+                        <small class="text-white-50">Recheio: <span id="recheioHoje">0 kg</span></small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card stat-card bg-primary text-white h-100">
+                    <div class="card-body">
+                        <small class="text-white-50">Vendas Hoje</small>
+                        <h3 id="vendasHoje">0</h3>
+                        <small class="text-white-50">pedidos</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card stat-card bg-warning text-white h-100">
+                    <div class="card-body">
+                        <small class="text-white-50">Faturamento Hoje</small>
+                        <h3 id="faturamentoHoje">R$ 0,00</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card stat-card bg-info text-white h-100">
+                    <div class="card-body">
+                        <small class="text-white-50">Faturamento Mês</small>
+                        <h3 id="faturamentoMes">R$ 0,00</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos e Estoque -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-lg-8">
+                <div class="card h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar text-success me-2"></i>Faturamento dos Últimos 30 Dias
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="graficoVendas" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie text-info me-2"></i>Formas de Pagamento
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="graficoFormas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estoque e Top Produtos -->
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Estoque Baixo
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Atual</th>
+                                        <th>Mínimo</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaEstoque">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>Carregando...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-trophy me-2"></i>Top Produtos (Mês)
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush" id="topProdutos">
+                            <div class="list-group-item text-center text-muted py-4">
+                                <i class="fas fa-spinner fa-spin me-2"></i>Carregando...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vendas Pendentes -->
+        <div class="row g-3 mt-2">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clock me-2"></i>Contas a Receber
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <h4 id="qtdPendente">0</h4>
+                                    <small class="text-muted">Vendas Pendentes</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <h4 id="valorPendente">R$ 0,00</h4>
+                                    <small class="text-muted">Total a Receber</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <h4 id="totalProdutos">0</h4>
+                                    <small class="text-muted">Produtos Ativos</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
+
