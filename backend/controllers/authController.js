@@ -24,7 +24,7 @@ exports.login = async (req, res) => {
         }
         
         // Atualizar último acesso
-        const updateStmt = db.db.prepare('UPDATE usuarios SET ultimo_acesso = datetime("now") WHERE id = ?');
+        const updateStmt = db.db.prepare("UPDATE usuarios SET ultimo_acesso = datetime('now') WHERE id = ?");
         updateStmt.run(usuario.id);
         
         const token = jwt.sign(
