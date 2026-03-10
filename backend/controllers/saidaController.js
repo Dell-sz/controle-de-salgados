@@ -106,13 +106,9 @@ exports.criarSaida = async (req, res) => {
         return res.status(400).json({ erro: 'Data, valor total e itens são obrigatórios' });
     }
     
-    const client = await db.getClient();
-    
     try {
-        await client.query('BEGIN');
-        
         // Inserir saída
-        const saidaResult = await client.query(
+        const saidaResult = await db.query(
             `INSERT INTO saidas (data, destino_id, responsavel_id, valor_total, valor_pago, forma_pagamento, data_recebimento, pago, observacao)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
             [data, destino_id, req.usuarioId, valor_total, valor_pago || 0, forma_pagamento, data_recebimento, pago || false, observacao]
@@ -125,7 +121,7 @@ exports.criarSaida = async (req, res) => {
         
         for (let item of itens) {
             // Buscar preço do produto
-            const produtoResult = await client.query('SELECT valor_unitario FROM produtos WHERE id = $1', [item.produto_id]);
+            const produtoResult = await db.query('SELECT valor_unitario FROM produtos WHERE id = $1', [item.produto_id]);
             
             if (produtoResult.rows.length === 0) {
                 continue;
@@ -136,28 +132,26 @@ exports.criarSaida = async (req, res) => {
             valorCalculado += subtotal;
             
             // Inserir item
-            await client.query(
+            await db.query(
                 `INSERT INTO saida_itens (saida_id, produto_id, quantidade, valor_unitario, desconto)
                  VALUES ($1, $2, $3, $4, $5)`,
                 [saida.id, item.produto_id, item.quantidade, valorUnitario, item.desconto || 0]
             );
             
             // Atualizar estoque (diminuir)
-            await client.query(
+            await db.query(
                 'UPDATE estoque SET quantidade = quantidade - $1, atualizado_em = CURRENT_TIMESTAMP WHERE produto_id = $2',
                 [item.quantidade, item.produto_id]
             );
         }
         
         // Atualizar valor total calculado
-        await client.query(
+        await db.query(
             'UPDATE saidas SET valor_total = $1 WHERE id = $2',
             [valorCalculado, saida.id]
         );
         
         saida.valor_total = valorCalculado;
-        
-        await client.query('COMMIT');
         
         // Retornar saída com itens
         const itensResult = await db.query(
@@ -172,11 +166,8 @@ exports.criarSaida = async (req, res) => {
         
         res.status(201).json(saida);
     } catch (error) {
-        await client.query('ROLLBACK');
         console.error('Erro ao criar saída:', error);
         res.status(500).json({ erro: 'Erro interno do servidor' });
-    } finally {
-        client.release();
     }
 };
 
@@ -208,45 +199,35 @@ exports.atualizarStatusPagamento = async (req, res) => {
 exports.excluirSaida = async (req, res) => {
     const { id } = req.params;
     
-    const client = await db.getClient();
-    
     try {
-        await client.query('BEGIN');
-        
         // Buscar itens da saída
-        const itensResult = await client.query(
+        const itensResult = await db.query(
             'SELECT produto_id, quantidade FROM saida_itens WHERE saida_id = $1',
             [id]
         );
         
         // Devolver itens ao estoque
         for (let item of itensResult.rows) {
-            await client.query(
+            await db.query(
                 'UPDATE estoque SET quantidade = quantidade + $1, atualizado_em = CURRENT_TIMESTAMP WHERE produto_id = $2',
                 [item.quantidade, item.produto_id]
             );
         }
         
         // Excluir saída (itens são excluídos em cascade)
-        const result = await client.query(
+        const result = await db.query(
             'DELETE FROM saidas WHERE id = $1 RETURNING id',
             [id]
         );
         
         if (result.rows.length === 0) {
-            await client.query('ROLLBACK');
             return res.status(404).json({ erro: 'Saída não encontrada' });
         }
         
-        await client.query('COMMIT');
-        
         res.json({ mensagem: 'Saída excluída com sucesso' });
     } catch (error) {
-        await client.query('ROLLBACK');
         console.error('Erro ao excluir saída:', error);
         res.status(500).json({ erro: 'Erro interno do servidor' });
-    } finally {
-        client.release();
     }
 };
 
