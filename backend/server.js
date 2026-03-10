@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
@@ -17,24 +16,11 @@ const relatorioRoutes = require('./routes/relatorioRoutes');
 
 const app = express();
 
-// Segurança - Configuração relaxada para permitir CDNs e scripts inline
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
-            imgSrc: ["'self'", "data:", "https:"],
-            fontSrc: ["'self'", "data:", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
-            connectSrc: ["'self'", "http://localhost:3000", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
-            workerSrc: ["'self'", "blob:"],
-            childSrc: ["'self'", "blob:"],
-        },
-    },
-    crossOriginEmbedderPolicy: false,
-}));
+// Segurança - Helmet desativado para permitir scripts inline no frontend
+// app.use(helmet({...}));
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5500',
+    origin: ['http://localhost:5500', 'http://localhost:3000'],
     credentials: true
 }));
 
