@@ -11,13 +11,13 @@ exports.listarProdutos = async (req, res) => {
         `;
         
         if (ativo !== undefined) {
-            query += ` WHERE p.ativo = $1`;
-            const result = await db.query(query + ` ORDER BY p.nome`, [ativo === 'true']);
-            return res.json(result.rows);
+            query += ` WHERE p.ativo = ?`;
+            const result = db.all(query + ` ORDER BY p.nome`, [ativo === 'true' ? 1 : 0]);
+            return res.json(result);
         }
         
-        const result = await db.query(query + ` ORDER BY p.nome`);
-        res.json(result.rows);
+        const result = db.all(query + ` ORDER BY p.nome`);
+        res.json(result);
     } catch (error) {
         console.error('Erro ao listar produtos:', error);
         res.status(500).json({ erro: 'Erro interno do servidor' });
@@ -28,19 +28,19 @@ exports.buscarProduto = async (req, res) => {
     const { id } = req.params;
     
     try {
-        const result = await db.query(
+        const result = db.get(
             `SELECT p.*, e.quantidade as estoque_atual, e.estoque_minimo, e.lote, e.data_validade
              FROM produtos p
              LEFT JOIN estoque e ON e.produto_id = p.id
-             WHERE p.id = $1`,
+             WHERE p.id = ?`,
             [id]
         );
         
-        if (result.rows.length === 0) {
+        if (!result) {
             return res.status(404).json({ erro: 'Produto não encontrado' });
         }
         
-        res.json(result.rows[0]);
+        res.json(result);
     } catch (error) {
         console.error('Erro ao buscar produto:', error);
         res.status(500).json({ erro: 'Erro interno do servidor' });
@@ -54,41 +54,36 @@ exports.criarProduto = async (req, res) => {
         return res.status(400).json({ erro: 'Nome e valor unitário são obrigatórios' });
     }
     
-    const client = await db.getClient();
-    
     try {
-        await client.query('BEGIN');
-        
         // Inserir produto
-        const produtoResult = await client.query(
-            `INSERT INTO produtos (nome, descricao, valor_unitario, custo_massa, custo_recheio)
-             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-            [nome, descricao, valor_unitario, custo_massa || 0, custo_recheio || 0]
+        const result = db.exec(
+            `INSERT INTO produtos (nome, descricao, valor_unitario, custo_massa, custo_recheio, ativo)
+             VALUES (?, ?, ?, ?, ?, 1)`,
+            [nome, descricao || '', valor_unitario, custo_massa || 0, custo_recheio || 0]
         );
         
-        const produto = produtoResult.rows[0];
+        // Pegar o último ID inserido
+        const lastId = db.get('SELECT last_insert_rowid() as id');
         
         // Criar registro de estoque
-        await client.query(
+        db.exec(
             `INSERT INTO estoque (produto_id, quantidade, estoque_minimo)
-             VALUES ($1, 0, $2)`,
-            [produto.id, estoque_minimo || 5]
+             VALUES (?, 0, ?)`,
+            [lastId.id, estoque_minimo || 5]
         );
         
-        await client.query('COMMIT');
+        // Retornar o produto criado
+        const produto = db.get('SELECT * FROM produtos WHERE id = ?', [lastId.id]);
         
         res.status(201).json(produto);
     } catch (error) {
-        await client.query('ROLLBACK');
+        console.error('Erro ao criar produto:', error);
         
-        if (error.code === '23505') {
+        if (error.message.includes('UNIQUE constraint failed')) {
             return res.status(400).json({ erro: 'Produto já cadastrado' });
         }
         
-        console.error('Erro ao criar produto:', error);
         res.status(500).json({ erro: 'Erro interno do servidor' });
-    } finally {
-        client.release();
     }
 };
 
@@ -97,23 +92,34 @@ exports.atualizarProduto = async (req, res) => {
     const { nome, descricao, valor_unitario, custo_massa, custo_recheio, ativo } = req.body;
     
     try {
-        const result = await db.query(
-            `UPDATE produtos 
-             SET nome = COALESCE($1, nome),
-                 descricao = COALESCE($2, descricao),
-                 valor_unitario = COALESCE($3, valor_unitario),
-                 custo_massa = COALESCE($4, custo_massa),
-                 custo_recheio = COALESCE($5, custo_recheio),
-                 ativo = COALESCE($6, ativo)
-             WHERE id = $7 RETURNING *`,
-            [nome, descricao, valor_unitario, custo_massa, custo_recheio, ativo, id]
-        );
-        
-        if (result.rows.length === 0) {
+        // Verificar se existe
+        const existente = db.get('SELECT id FROM produtos WHERE id = ?', [id]);
+        if (!existente) {
             return res.status(404).json({ erro: 'Produto não encontrado' });
         }
         
-        res.json(result.rows[0]);
+        // Atualizar apenas os campos fornecidos
+        if (nome !== undefined) {
+            db.exec('UPDATE produtos SET nome = ? WHERE id = ?', [nome, id]);
+        }
+        if (descricao !== undefined) {
+            db.exec('UPDATE produtos SET descricao = ? WHERE id = ?', [descricao, id]);
+        }
+        if (valor_unitario !== undefined) {
+            db.exec('UPDATE produtos SET valor_unitario = ? WHERE id = ?', [valor_unitario, id]);
+        }
+        if (custo_massa !== undefined) {
+            db.exec('UPDATE produtos SET custo_massa = ? WHERE id = ?', [custo_massa, id]);
+        }
+        if (custo_recheio !== undefined) {
+            db.exec('UPDATE produtos SET custo_recheio = ? WHERE id = ?', [custo_recheio, id]);
+        }
+        if (ativo !== undefined) {
+            db.exec('UPDATE produtos SET ativo = ? WHERE id = ?', [ativo ? 1 : 0, id]);
+        }
+        
+        const produto = db.get('SELECT * FROM produtos WHERE id = ?', [id]);
+        res.json(produto);
     } catch (error) {
         console.error('Erro ao atualizar produto:', error);
         res.status(500).json({ erro: 'Erro interno do servidor' });
@@ -124,15 +130,13 @@ exports.deletarProduto = async (req, res) => {
     const { id } = req.params;
     
     try {
-        // Soft delete - apenas desativar
-        const result = await db.query(
-            `UPDATE produtos SET ativo = false WHERE id = $1 RETURNING id`,
-            [id]
-        );
-        
-        if (result.rows.length === 0) {
+        const existente = db.get('SELECT id FROM produtos WHERE id = ?', [id]);
+        if (!existente) {
             return res.status(404).json({ erro: 'Produto não encontrado' });
         }
+        
+        // Soft delete - apenas desativar
+        db.exec('UPDATE produtos SET ativo = 0 WHERE id = ?', [id]);
         
         res.json({ mensagem: 'Produto desativado com sucesso' });
     } catch (error) {
@@ -147,25 +151,38 @@ exports.atualizarEstoque = async (req, res) => {
     
     try {
         // Verificar se produto existe
-        const produtoCheck = await db.query('SELECT id FROM produtos WHERE id = $1', [id]);
-        if (produtoCheck.rows.length === 0) {
+        const produtoCheck = db.get('SELECT id FROM produtos WHERE id = ?', [id]);
+        if (!produtoCheck) {
             return res.status(404).json({ erro: 'Produto não encontrado' });
         }
         
-        const result = await db.query(
-            `INSERT INTO estoque (produto_id, quantidade, estoque_minimo, lote, data_validade)
-             VALUES ($1, $2, $3, $4, $5)
-             ON CONFLICT (produto_id) DO UPDATE SET
-                quantidade = COALESCE($2, estoque.quantidade),
-                estoque_minimo = COALESCE($3, estoque.estoque_minimo),
-                lote = COALESCE($4, estoque.lote),
-                data_validade = COALESCE($5, estoque.data_validade),
-                atualizado_em = CURRENT_TIMESTAMP
-             RETURNING *`,
-            [id, quantidade, estoque_minimo, lote, data_validade]
-        );
+        // Verificar se já tem estoque
+        const estoqueExistente = db.get('SELECT id FROM estoque WHERE produto_id = ?', [id]);
         
-        res.json(result.rows[0]);
+        if (estoqueExistente) {
+            // Atualizar
+            if (quantidade !== undefined) {
+                db.exec('UPDATE estoque SET quantidade = ? WHERE produto_id = ?', [quantidade, id]);
+            }
+            if (estoque_minimo !== undefined) {
+                db.exec('UPDATE estoque SET estoque_minimo = ? WHERE produto_id = ?', [estoque_minimo, id]);
+            }
+            if (lote !== undefined) {
+                db.exec('UPDATE estoque SET lote = ? WHERE produto_id = ?', [lote, id]);
+            }
+            if (data_validade !== undefined) {
+                db.exec('UPDATE estoque SET data_validade = ? WHERE produto_id = ?', [data_validade, id]);
+            }
+        } else {
+            // Criar
+            db.exec(
+                'INSERT INTO estoque (produto_id, quantidade, estoque_minimo, lote, data_validade) VALUES (?, ?, ?, ?, ?)',
+                [id, quantidade || 0, estoque_minimo || 5, lote || null, data_validade || null]
+            );
+        }
+        
+        const estoque = db.get('SELECT * FROM estoque WHERE produto_id = ?', [id]);
+        res.json(estoque);
     } catch (error) {
         console.error('Erro ao atualizar estoque:', error);
         res.status(500).json({ erro: 'Erro interno do servidor' });
@@ -174,16 +191,16 @@ exports.atualizarEstoque = async (req, res) => {
 
 exports.listarEstoque = async (req, res) => {
     try {
-        const result = await db.query(
+        const result = db.all(
             `SELECT p.id, p.nome, p.valor_unitario, e.quantidade, e.estoque_minimo, e.lote, e.data_validade,
                     CASE WHEN e.quantidade <= e.estoque_minimo THEN 'baixo' ELSE 'ok' END as status_estoque
              FROM produtos p
              JOIN estoque e ON e.produto_id = p.id
-             WHERE p.ativo = true
+             WHERE p.ativo = 1
              ORDER BY e.quantidade ASC, p.nome`
         );
         
-        res.json(result.rows);
+        res.json(result);
     } catch (error) {
         console.error('Erro ao listar estoque:', error);
         res.status(500).json({ erro: 'Erro interno do servidor' });

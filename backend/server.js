@@ -17,16 +17,18 @@ const relatorioRoutes = require('./routes/relatorioRoutes');
 
 const app = express();
 
-// Segurança - Configuração relaxada para permitir Bootstrap CDN e scripts inline
+// Segurança - Configuração relaxada para permitir CDNs e scripts inline
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-            imgSrc: ["'self'", "data:"],
-            fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
-            connectSrc: ["'self'", "http://localhost:3000"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "https:"],
+            fontSrc: ["'self'", "data:", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+            connectSrc: ["'self'", "http://localhost:3000", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+            workerSrc: ["'self'", "blob:"],
+            childSrc: ["'self'", "blob:"],
         },
     },
     crossOriginEmbedderPolicy: false,
