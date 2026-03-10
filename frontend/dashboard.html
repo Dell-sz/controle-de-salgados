@@ -227,6 +227,16 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/dashboard.js"></script>
+    <script>
+        // Verifica autenticação ao carregar
+        if (!checkAuth()) {
+            // Redirecionado pelo checkAuth
+        }
+        
+        // Exibe nome do usuário
+        const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+        document.getElementById('usuarioNome').textContent = usuario.nome || '';
+    </script>
 </body>
 </html>
 

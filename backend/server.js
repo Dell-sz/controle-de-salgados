@@ -1,86 +1,43 @@
 const express = require('express');
 const cors = require('cors');
-const rateLimit = require('express-rate-limit');
-const path = require('path');
-require('dotenv').config();
-
-const { initDb } = require('./config/database');
-
-const authRoutes = require('./routes/authRoutes');
-const produtoRoutes = require('./routes/produtoRoutes');
-const producaoRoutes = require('./routes/producaoRoutes');
-const saidaRoutes = require('./routes/saidaRoutes');
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const destinoRoutes = require('./routes/destinoRoutes');
-const relatorioRoutes = require('./routes/relatorioRoutes');
+const db = require('./config/database');
 
 const app = express();
 
-// Segurança - Helmet desativado para permitir scripts inline no frontend
-// app.use(helmet({...}));
-
+// CORS liberado para frontend
 app.use(cors({
-    origin: ['http://localhost:5500', 'http://localhost:3000'],
+    origin: 'http://localhost:5500',
     credentials: true
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 100 // limite por IP
-});
-app.use('/api/', limiter);
-
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // Servir arquivos estáticos do frontend
-app.use(express.static(path.join(__dirname, '..', 'frontend')));
+app.use(express.static(require('path').join(__dirname, '..', 'frontend')));
 
 // Rota para servir o index.html na raiz
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+    res.sendFile(require('path').join(__dirname, '..', 'frontend', 'index.html'));
 });
 
 // Rotas
-app.use('/api/auth', authRoutes);
-app.use('/api/produtos', produtoRoutes);
-app.use('/api/producoes', producaoRoutes);
-app.use('/api/saidas', saidaRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/destinos', destinoRoutes);
-app.use('/api/relatorios', relatorioRoutes);
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/produtos', require('./routes/produtoRoutes'));
+app.use('/api/producoes', require('./routes/producaoRoutes'));
+app.use('/api/saidas', require('./routes/saidaRoutes'));
+app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+app.use('/api/relatorios', require('./routes/relatorioRoutes'));
 
 // Rota de saúde
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Tratamento de erros global
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ erro: 'Erro interno do servidor' });
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    console.log(`📡 Frontend deve acessar: http://localhost:5500`);
 });
 
-const PORT = process.env.PORT || 3000;
-
-// Iniciar servidor
-async function startServer() {
-    try {
-        console.log('🔄 Inicializando banco de dados...');
-        await initDb();
-        console.log('✅ Banco de dados conectado!');
-        
-        app.listen(PORT, () => {
-            console.log(`🚀 Servidor rodando na porta ${PORT}`);
-            console.log(`📊 Banco: SQLite (universo_empada.db)`);
-        });
-    } catch (error) {
-        console.error('❌ Erro ao iniciar:', error);
-        process.exit(1);
-    }
-}
-
-startServer();
-
 module.exports = app;
+

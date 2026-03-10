@@ -1,68 +1,82 @@
-// Verificar autenticação ao carregar
-document.addEventListener('DOMContentLoaded', () => {
-    // Se já estiver logado, redirecionar para dashboard
-    if (api.getToken() && window.location.pathname.includes('index.html')) {
-        window.location.href = 'dashboard.html';
-    }
-    
-    // Configurar formulário de login
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
-});
+// Configuração
+const API_URL = 'http://localhost:3000/api';
 
-async function handleLogin(e) {
-    e.preventDefault();
+// Login
+async function login(event) {
+    if (event) event.preventDefault();
     
-    const email = document.getElementById('email').value;
-    const senha = document.getElementById('senha').value;
-    const mensagemDiv = document.getElementById('mensagem');
+    const email = document.getElementById('email')?.value;
+    const senha = document.getElementById('senha')?.value;
     
-    // Mostrar feedback visual
-    const btn = e.target.querySelector('button[type="submit"]');
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Entrando...';
+    if (!email || !senha) {
+        alert('Preencha email e senha');
+        return;
+    }
     
     try {
-        const data = await api.post('/auth/login', { email, senha });
-        api.setToken(data.token);
-        api.setUsuario(data.usuario);
+        console.log('🔄 Tentando login...');
         
-        // Redirecionar baseado no tipo de usuário
-        if (data.usuario.tipo === 'admin') {
+        const response = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, senha })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.erro || 'Erro no login');
+        }
+        
+        if (data.token) {
+            // Salva token e usuário
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('usuario', JSON.stringify(data.usuario));
+            
+            console.log('✅ Login bem-sucedido!');
+            console.log('👤 Usuário:', data.usuario.nome);
+            console.log('🔑 Token:', data.token.substring(0, 20) + '...');
+            
+            // Redireciona
             window.location.href = 'dashboard.html';
         } else {
-            window.location.href = 'dashboard.html';
+            throw new Error('Resposta inválida do servidor');
         }
         
     } catch (error) {
-        // Mostrar erro
-        mensagemDiv.classList.remove('d-none', 'alert-success');
-        mensagemDiv.classList.add('alert-danger');
-        mensagemDiv.textContent = error.message || 'Erro ao fazer login';
-        
-        // Limpar senha
-        document.getElementById('senha').value = '';
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
+        console.error('❌ Erro no login:', error);
+        alert('Erro ao fazer login: ' + error.message);
     }
 }
 
+// Logout
 function logout() {
-    api.clearAuth();
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
     window.location.href = 'index.html';
 }
 
-function getUsuarioNome() {
-    const usuario = api.getUsuario();
-    return usuario ? usuario.nome : 'Usuário';
+// Verifica autenticação
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    const currentPage = window.location.pathname.split('/').pop();
+    
+    // Páginas que não precisam de autenticação
+    const publicPages = ['index.html', 'login.html'];
+    
+    if (!token && !publicPages.includes(currentPage)) {
+        console.warn('⚠️ Sem token, redirecionando para login');
+        window.location.href = 'index.html';
+        return false;
+    }
+    
+    return true;
 }
 
-function getUsuarioTipo() {
-    const usuario = api.getUsuario();
-    return usuario ? usuario.tipo : 'operador';
-}
+// Executa verificação em todas as páginas
+document.addEventListener('DOMContentLoaded', checkAuth);
+
+// Expõe funções globalmente
+window.login = login;
+window.logout = logout;
 

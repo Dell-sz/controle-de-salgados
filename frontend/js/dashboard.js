@@ -1,10 +1,9 @@
 // Verificar autenticação
-if (!api.getToken()) {
-    window.location.href = 'index.html';
+if (!checkAuth()) {
+    // Redirecionado pelo checkAuth
 }
 
-// Mostrar nome do usuário
-document.getElementById('usuarioNome').textContent = api.getUsuario()?.nome || 'Usuário';
+// Mostrar nome do usuário - será configurado no HTML após auth.js carregar
 
 let graficoVendas = null;
 let graficoFormas = null;

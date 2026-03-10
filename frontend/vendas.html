@@ -174,8 +174,12 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        if (!api.getToken()) window.location.href = 'index.html';
-        document.getElementById('usuarioNome').textContent = api.getUsuario()?.nome || '';
+        // Verifica autenticação
+        if (!checkAuth()) {
+            // Redirecionado pelo checkAuth
+        }
+        
+        document.getElementById('usuarioNome').textContent = JSON.parse(localStorage.getItem('usuario') || '{}').nome || '';
         
         // Setar data de hoje
         document.getElementById('vendaData').valueAsDate = new Date();
