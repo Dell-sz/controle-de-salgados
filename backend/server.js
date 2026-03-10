@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 
 const { initDb } = require('./config/database');
@@ -32,6 +33,14 @@ app.use('/api/', limiter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Servir arquivos estáticos do frontend
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
+
+// Rota para servir o index.html na raiz
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+});
 
 // Rotas
 app.use('/api/auth', authRoutes);

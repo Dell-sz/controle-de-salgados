@@ -7,6 +7,19 @@ const db = new Database(dbPath);
 // Configurar para retornar objetos em vez de arrays
 db.pragma('journal_mode = WAL');
 
+// Função de inicialização do banco
+async function initDb() {
+    // O banco já é inicializado ao criar a conexão acima
+    // Verificar se as tabelas existem
+    try {
+        db.exec("SELECT 1 FROM usuarios LIMIT 1");
+        console.log('✅ Banco de dados SQLite conectado!');
+    } catch (error) {
+        console.error('❌ Erro ao verificar banco:', error.message);
+        throw error;
+    }
+}
+
 // Helper para simular a interface do pg (async/await com $1, $2)
 function query(sql, params = []) {
     // Converter $1, $2, etc. para ?
@@ -60,5 +73,6 @@ module.exports = {
     query,
     exec: dbExec,
     get: dbGet,
-    all: dbAll
+    all: dbAll,
+    initDb
 };
