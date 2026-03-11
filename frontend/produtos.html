@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-success">
@@ -15,11 +17,49 @@
             <a class="navbar-brand" href="dashboard.html">
                 <i class="fas fa-utensils me-2"></i>Universo da Empada
             </a>
-            <div class="d-flex">
-                <span class="navbar-text me-3" id="usuarioNome"></span>
-                <button class="btn btn-outline-light btn-sm" onclick="logout()">
-                    <i class="fas fa-sign-out-alt me-1"></i> Sair
-                </button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-label="Abrir menu de navegação">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">
+                            <i class="fas fa-home me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="produtos.html">
+                            <i class="fas fa-box me-1"></i> Produtos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="producao.html">
+                            <i class="fas fa-industry me-1"></i> Produção
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="clientes.html">
+                            <i class="fas fa-users me-1"></i> Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="vendas.html">
+                            <i class="fas fa-shopping-cart me-1"></i> Vendas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="relatorios.html">
+                            <i class="fas fa-chart-bar me-1"></i> Relatórios
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <span class="navbar-text me-3" id="usuarioNome"></span>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                        <i class="fas fa-sign-out-alt me-1"></i> Sair
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
@@ -48,7 +88,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="6" class="text-center py-4">Carregando...</td></tr>
+                            <tr>
+                                <td colspan="6" class="text-center py-4">Carregando...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -62,27 +104,32 @@
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title" id="modalTitulo">Novo Produto</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Fechar"></button>
                 </div>
                 <form id="produtoForm">
                     <div class="modal-body">
                         <input type="hidden" id="produtoId">
                         <div class="mb-3">
                             <label class="form-label">Nome</label>
-                            <input type="text" class="form-control" id="produtoNome" required>
+                            <input type="text" class="form-control" id="produtoNome" required
+                                aria-label="Nome do produto">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Descrição</label>
-                            <textarea class="form-control" id="produtoDescricao" rows="2"></textarea>
+                            <textarea class="form-control" id="produtoDescricao" rows="2"
+                                aria-label="Descrição do produto"></textarea>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Valor Unitário (R$)</label>
-                                <input type="number" step="0.01" class="form-control" id="produtoValor" required>
+                                <input type="number" step="0.01" class="form-control" id="produtoValor" required
+                                    aria-label="Valor unitário">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Estoque Mínimo</label>
-                                <input type="number" class="form-control" id="produtoEstoqueMinimo" value="5">
+                                <input type="number" class="form-control" id="produtoEstoqueMinimo" value="5"
+                                    aria-label="Estoque mínimo">
                             </div>
                         </div>
                     </div>
@@ -103,27 +150,27 @@
         if (!checkAuth()) {
             // Redirecionado pelo checkAuth
         }
-        
+
         document.getElementById('usuarioNome').textContent = JSON.parse(localStorage.getItem('usuario') || '{}').nome || '';
-        
+
         let produtoModal;
-        
+
         document.addEventListener('DOMContentLoaded', () => {
             produtoModal = new bootstrap.Modal(document.getElementById('produtoModal'));
             carregarProdutos();
             document.getElementById('produtoForm').addEventListener('submit', salvarProduto);
         });
-        
+
         async function carregarProdutos() {
             try {
                 const produtos = await api.get('/produtos');
                 const tbody = document.querySelector('#tabelaProdutos tbody');
-                
+
                 if (produtos.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Nenhum produto cadastrado</td></tr>';
                     return;
                 }
-                
+
                 tbody.innerHTML = produtos.map(p => `
                     <tr>
                         <td><strong>${p.nome}</strong><br><small class="text-muted">${p.descricao || ''}</small></td>
@@ -142,14 +189,14 @@
                 alert('Erro ao carregar produtos: ' + error.message);
             }
         }
-        
+
         function abrirModalProduto() {
             document.getElementById('produtoForm').reset();
             document.getElementById('produtoId').value = '';
             document.getElementById('modalTitulo').textContent = 'Novo Produto';
             produtoModal.show();
         }
-        
+
         function editarProduto(id, nome, descricao, valor, estoqueMin) {
             document.getElementById('produtoId').value = id;
             document.getElementById('produtoNome').value = nome;
@@ -159,10 +206,10 @@
             document.getElementById('modalTitulo').textContent = 'Editar Produto';
             produtoModal.show();
         }
-        
+
         async function salvarProduto(e) {
             e.preventDefault();
-            
+
             const id = document.getElementById('produtoId').value;
             const dados = {
                 nome: document.getElementById('produtoNome').value,
@@ -170,7 +217,7 @@
                 valor_unitario: parseFloat(document.getElementById('produtoValor').value),
                 estoque_minimo: parseInt(document.getElementById('produtoEstoqueMinimo').value)
             };
-            
+
             try {
                 if (id) {
                     await api.put('/produtos/' + id, dados);
@@ -185,5 +232,5 @@
         }
     </script>
 </body>
-</html>
 
+</html>

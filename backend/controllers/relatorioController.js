@@ -1,8 +1,70 @@
 const db = require('../config/database');
 
+exports.relatorioVendasFiltrado = async (req, res) => {
+    try {
+        const { data_inicio, data_fim, destino_id, forma_pagamento } = req.body;
+
+        let sql = `
+            SELECT 
+                s.id,
+                s.data,
+                s.valor_total,
+                s.valor_pago,
+                s.forma_pagamento,
+                s.pago,
+                s.observacao,
+                d.id as destino_id,
+                d.nome as destino_nome
+            FROM saidas s
+            LEFT JOIN destinos d ON s.destino_id = d.id
+            WHERE 1=1
+        `;
+
+        const params = [];
+
+        if (data_inicio && data_fim) {
+            sql += ` AND DATE(s.data) BETWEEN DATE($1) AND DATE($2)`;
+            params.push(data_inicio, data_fim);
+        }
+
+        if (destino_id) {
+            sql += ` AND s.destino_id = $${params.length + 1}`;
+            params.push(destino_id);
+        }
+
+        if (forma_pagamento) {
+            sql += ` AND s.forma_pagamento = $${params.length + 1}`;
+            params.push(forma_pagamento);
+        }
+
+        sql += ` ORDER BY s.data DESC, s.id DESC`;
+
+        const result = await db.query(sql, params);
+        const vendas = result.rows;
+
+        // Buscar itens para cada venda
+        for (let venda of vendas) {
+            const itensResult = await db.query(
+                `SELECT si.quantidade, si.valor_unitario, p.nome as produto_nome
+                 FROM saida_itens si
+                 JOIN produtos p ON p.id = si.produto_id
+                 WHERE si.saida_id = $1`,
+                [venda.id]
+            );
+            venda.itens = itensResult.rows;
+        }
+
+        res.json(vendas);
+
+    } catch (error) {
+        console.error('Erro no relatório filtrado:', error);
+        res.status(500).json({ erro: 'Erro ao gerar relatório' });
+    }
+};
+
 exports.getRelatorioVendas = async (req, res) => {
     const { data_inicio, data_fim, destino_id } = req.query;
-    
+
     try {
         let query = `
             SELECT s.data, s.destino_id, d.nome as destino_nome, 
@@ -11,36 +73,36 @@ exports.getRelatorioVendas = async (req, res) => {
             LEFT JOIN destinos d ON d.id = s.destino_id
             WHERE 1=1
         `;
-        
+
         const params = [];
         let paramCount = 0;
-        
+
         if (data_inicio) {
             paramCount++;
             query += ` AND s.data >= $${paramCount}`;
             params.push(data_inicio);
         }
-        
+
         if (data_fim) {
             paramCount++;
             query += ` AND s.data <= $${paramCount}`;
             params.push(data_fim);
         }
-        
+
         if (destino_id) {
             paramCount++;
             query += ` AND s.destino_id = $${paramCount}`;
             params.push(destino_id);
         }
-        
+
         query += ` ORDER BY s.data DESC`;
-        
+
         const result = await db.query(query, params);
-        
+
         // Calcular totais
         const totalGeral = result.rows.reduce((acc, r) => acc + parseFloat(r.valor_total || 0), 0);
         const totalRecebido = result.rows.reduce((acc, r) => acc + parseFloat(r.valor_pago || 0), 0);
-        
+
         res.json({
             vendas: result.rows,
             total_geral: totalGeral,
@@ -55,7 +117,7 @@ exports.getRelatorioVendas = async (req, res) => {
 
 exports.getRelatorioProducao = async (req, res) => {
     const { data_inicio, data_fim } = req.query;
-    
+
     try {
         let query = `
             SELECT p.data, p.massa_produzida, p.recheio_produzido, 
@@ -65,30 +127,30 @@ exports.getRelatorioProducao = async (req, res) => {
             LEFT JOIN usuarios u ON u.id = p.responsavel_id
             WHERE 1=1
         `;
-        
+
         const params = [];
         let paramCount = 0;
-        
+
         if (data_inicio) {
             paramCount++;
             query += ` AND p.data >= $${paramCount}`;
             params.push(data_inicio);
         }
-        
+
         if (data_fim) {
             paramCount++;
             query += ` AND p.data <= $${paramCount}`;
             params.push(data_fim);
         }
-        
+
         query += ` ORDER BY p.data DESC`;
-        
+
         const result = await db.query(query, params);
-        
+
         // Calcular totais
         const totalMassa = result.rows.reduce((acc, r) => acc + parseFloat(r.massa_produzida || 0), 0);
         const totalRecheio = result.rows.reduce((acc, r) => acc + parseFloat(r.recheio_produzido || 0), 0);
-        
+
         // Buscar itens de cada produção
         for (let producao of result.rows) {
             const itensResult = await db.query(
@@ -100,7 +162,7 @@ exports.getRelatorioProducao = async (req, res) => {
             );
             producao.itens = itensResult.rows;
         }
-        
+
         res.json({
             producoes: result.rows,
             total_massas: totalMassa,
@@ -114,7 +176,7 @@ exports.getRelatorioProducao = async (req, res) => {
 
 exports.getRelatorioProdutos = async (req, res) => {
     const { data_inicio, data_fim } = req.query;
-    
+
     try {
         let query = `
             SELECT pr.nome,
@@ -126,28 +188,28 @@ exports.getRelatorioProdutos = async (req, res) => {
             JOIN saidas s ON s.id = si.saida_id
             WHERE s.pago = true
         `;
-        
+
         const params = [];
         let paramCount = 0;
-        
+
         if (data_inicio) {
             paramCount++;
             query += ` AND s.data >= $${paramCount}`;
             params.push(data_inicio);
         }
-        
+
         if (data_fim) {
             paramCount++;
             query += ` AND s.data <= $${paramCount}`;
             params.push(data_fim);
         }
-        
+
         query += ` GROUP BY pr.id, pr.nome ORDER BY total_vendido DESC`;
-        
+
         const result = await db.query(query, params);
-        
+
         const totalGeral = result.rows.reduce((acc, r) => acc + parseFloat(r.total_vendido || 0), 0);
-        
+
         res.json({
             produtos: result.rows,
             total_geral: totalGeral
@@ -160,13 +222,13 @@ exports.getRelatorioProdutos = async (req, res) => {
 
 exports.getGraficoVendas = async (req, res) => {
     const { dias = 30 } = req.query;
-    
+
     try {
         const dataInicio = new Date();
         dataInicio.setDate(dataInicio.getDate() - parseInt(dias));
         const dataInicioStr = dataInicio.toISOString().split('T')[0];
         const hoje = new Date().toISOString().split('T')[0];
-        
+
         const result = await db.query(
             `SELECT data, SUM(valor_total) as total
              FROM saidas
@@ -175,7 +237,7 @@ exports.getGraficoVendas = async (req, res) => {
              ORDER BY data`,
             [dataInicioStr, hoje]
         );
-        
+
         res.json(result.rows);
     } catch (error) {
         console.error('Erro no gráfico de vendas:', error);

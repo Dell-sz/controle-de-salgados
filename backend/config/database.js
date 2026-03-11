@@ -24,22 +24,25 @@ async function initDb() {
 function query(sql, params = []) {
     // Converter $1, $2, etc. para ?
     let normalizedSql = sql.replace(/\$(\d+)/g, '?');
-    
+
+    // ** CORREÇÃO: Filtrar parâmetros undefined e converter para null **
+    const safeParams = params.map(p => p === undefined ? null : p);
+
     const stmt = db.prepare(normalizedSql);
-    
+
     try {
         if (sql.trim().toUpperCase().startsWith('SELECT')) {
-            const rows = stmt.all(...params);
+            const rows = stmt.all(...safeParams);
             return Promise.resolve({ rows });
         } else {
             // INSERT, UPDATE, DELETE
             let result;
             if (sql.toLowerCase().includes('returning')) {
                 //处理 RETURNING
-                const result = stmt.get(...params);
+                const result = stmt.get(...safeParams);
                 return Promise.resolve({ rows: [result] });
             } else {
-                result = stmt.run(...params);
+                result = stmt.run(...safeParams);
                 return Promise.resolve({ rows: [result] });
             }
         }
@@ -51,21 +54,27 @@ function query(sql, params = []) {
 
 // Para queries síncronas directas
 function dbExec(sql, params = []) {
+    // ** CORREÇÃO: Filtrar parâmetros undefined e converter para null **
+    const safeParams = params.map(p => p === undefined ? null : p);
     const normalizedSql = sql.replace(/\$(\d+)/g, '?');
     const stmt = db.prepare(normalizedSql);
-    return stmt.run(...params);
+    return stmt.run(...safeParams);
 }
 
 function dbGet(sql, params = []) {
+    // ** CORREÇÃO: Filtrar parâmetros undefined e converter para null **
+    const safeParams = params.map(p => p === undefined ? null : p);
     const normalizedSql = sql.replace(/\$(\d+)/g, '?');
     const stmt = db.prepare(normalizedSql);
-    return stmt.get(...params);
+    return stmt.get(...safeParams);
 }
 
 function dbAll(sql, params = []) {
+    // ** CORREÇÃO: Filtrar parâmetros undefined e converter para null **
+    const safeParams = params.map(p => p === undefined ? null : p);
     const normalizedSql = sql.replace(/\$(\d+)/g, '?');
     const stmt = db.prepare(normalizedSql);
-    return stmt.all(...params);
+    return stmt.all(...safeParams);
 }
 
 module.exports = {

@@ -1,0 +1,122 @@
+/* @tailwindcss/tailwind */
+/* stylelint-disable at-rule-no-unknown */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* stylelint-enable at-rule-no-unknown */
+
+/* stylelint-disable-next-line at-rule-no-unknown */
+
+@layer base {
+  :root {
+    /* Modo Claro - Tema Pastel */
+    --background: 36 33% 97%;
+    --foreground: 20 14% 4%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 14% 4%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14% 4%;
+
+    --primary: 25 95% 53%;
+    --primary-foreground: 60 9% 98%;
+
+    --secondary: 12 6% 15%;
+    --secondary-foreground: 60 9% 98%;
+
+    --muted: 30 6% 90%;
+    --muted-foreground: 25 5% 45%;
+
+    --accent: 12 6% 15%;
+    --accent-foreground: 60 9% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 20 6% 90%;
+    --input: 20 6% 90%;
+    --ring: 25 95% 53%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 20 14% 4%;
+    --foreground: 60 9% 98%;
+
+    --card: 24 10% 8%;
+    --card-foreground: 60 9% 98%;
+
+    --popover: 24 10% 8%;
+    --popover-foreground: 60 9% 98%;
+
+    --primary: 25 95% 53%;
+    --primary-foreground: 60 9% 98%;
+
+    --secondary: 30 6% 15%;
+    --secondary-foreground: 60 9% 98%;
+
+    --muted: 30 6% 15%;
+    --muted-foreground: 25 5% 65%;
+
+    --accent: 25 95% 53%;
+    --accent-foreground: 60 9% 98%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 60 9% 98%;
+
+    --border: 30 6% 15%;
+    --input: 30 6% 15%;
+    --ring: 25 95% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+.glass {
+  @apply bg-white/70 backdrop-blur-md dark:bg-black/50;
+}
+
+/* stylelint-disable-next-line at-rule-no-unknown */
+.glass-card {
+  @apply bg-white/50 backdrop-blur-sm border border-white/20 dark:bg-black/30 dark:border-white/10;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-colors;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}

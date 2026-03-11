@@ -46,6 +46,9 @@ CREATE TABLE IF NOT EXISTS destinos (
     contato VARCHAR(100),
     telefone VARCHAR(20),
     email VARCHAR(100),
+    cpf_cnpj VARCHAR(20),
+    tipo_pessoa VARCHAR(20) DEFAULT 'fisica',
+    observacao TEXT,
     ativo INTEGER DEFAULT 1,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

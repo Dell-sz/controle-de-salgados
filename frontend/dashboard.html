@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-success">
@@ -16,7 +18,8 @@
             <a class="navbar-brand" href="#">
                 <i class="fas fa-utensils me-2"></i>Universo da Empada
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-label="Abrir menu de navegação">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -34,6 +37,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="producao.html">
                             <i class="fas fa-industry me-1"></i> Produção
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="clientes.html">
+                            <i class="fas fa-users me-1"></i> Clientes
                         </a>
                     </li>
                     <li class="nav-item">
@@ -69,7 +77,7 @@
         <h2 class="mb-4">
             <i class="fas fa-chart-line text-success me-2"></i>Dashboard
         </h2>
-        
+
         <!-- Cards de Resumo -->
         <div class="row mb-4 g-3">
             <div class="col-6 col-lg-3">
@@ -232,11 +240,11 @@
         if (!checkAuth()) {
             // Redirecionado pelo checkAuth
         }
-        
+
         // Exibe nome do usuário
         const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
         document.getElementById('usuarioNome').textContent = usuario.nome || '';
     </script>
 </body>
-</html>
 
+</html>

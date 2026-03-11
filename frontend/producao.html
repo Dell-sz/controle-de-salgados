@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-success">
@@ -15,18 +17,56 @@
             <a class="navbar-brand" href="dashboard.html">
                 <i class="fas fa-utensils me-2"></i>Universo da Empada
             </a>
-            <div class="d-flex">
-                <span class="navbar-text me-3" id="usuarioNome"></span>
-                <button class="btn btn-outline-light btn-sm" onclick="logout()">
-                    <i class="fas fa-sign-out-alt me-1"></i> Sair
-                </button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-label="Abrir menu de navegação">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">
+                            <i class="fas fa-home me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="produtos.html">
+                            <i class="fas fa-box me-1"></i> Produtos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="producao.html">
+                            <i class="fas fa-industry me-1"></i> Produção
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="clientes.html">
+                            <i class="fas fa-users me-1"></i> Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="vendas.html">
+                            <i class="fas fa-shopping-cart me-1"></i> Vendas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="relatorios.html">
+                            <i class="fas fa-chart-bar me-1"></i> Relatórios
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <span class="navbar-text me-3" id="usuarioNome"></span>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                        <i class="fas fa-sign-out-alt me-1"></i> Sair
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
 
     <div class="container-fluid p-4">
         <h2 class="mb-4"><i class="fas fa-industry text-success me-2"></i>Registro de Produção</h2>
-        
+
         <div class="row">
             <div class="col-lg-8">
                 <!-- Formulário de Produção -->
@@ -39,53 +79,62 @@
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Data</label>
-                                    <input type="date" class="form-control" id="dataProducao" required>
+                                    <input type="date" class="form-control" id="dataProducao" required
+                                        aria-label="Data da produção">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Massa Produzida (kg)</label>
-                                    <input type="number" step="0.01" class="form-control" id="massaProduzida" required>
+                                    <input type="number" step="0.01" class="form-control" id="massaProduzida" required
+                                        aria-label="Massa produzida em kg">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Recheio Produzido (kg)</label>
-                                    <input type="number" step="0.01" class="form-control" id="recheioProduzido" required>
+                                    <input type="number" step="0.01" class="form-control" id="recheioProduzido" required
+                                        aria-label="Recheio produzido em kg">
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Sobra Massa (kg)</label>
-                                    <input type="number" step="0.01" class="form-control" id="sobraMassa" value="0">
+                                    <input type="number" step="0.01" class="form-control" id="sobraMassa" value="0"
+                                        aria-label="Sobra de massa em kg">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Sobra Recheio (kg)</label>
-                                    <input type="number" step="0.01" class="form-control" id="sobraRecheio" value="0">
+                                    <input type="number" step="0.01" class="form-control" id="sobraRecheio" value="0"
+                                        aria-label="Sobra de recheio em kg">
                                 </div>
                             </div>
-                            
+
                             <hr>
                             <h6>Itens Produzidos</h6>
-                            
+
                             <div class="row g-2 mb-3">
                                 <div class="col-md-4">
-                                    <select class="form-select" id="produtoSelect">
+                                    <select class="form-select" id="produtoSelect" aria-label="Selecione o produto">
                                         <option value="">Selecione o produto</option>
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="number" class="form-control" id="quantidadeItem" placeholder="Qtd">
+                                    <input type="number" class="form-control" id="quantidadeItem" placeholder="Qtd"
+                                        aria-label="Quantidade">
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="number" step="0.01" class="form-control" id="massaItem" placeholder="Massa kg">
+                                    <input type="number" step="0.01" class="form-control" id="massaItem"
+                                        placeholder="Massa kg" aria-label="Massa do item em kg">
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="number" step="0.01" class="form-control" id="recheioItem" placeholder="Recheio kg">
+                                    <input type="number" step="0.01" class="form-control" id="recheioItem"
+                                        placeholder="Recheio kg" aria-label="Recheio do item em kg">
                                 </div>
                                 <div class="col-md-2">
-                                    <button type="button" class="btn btn-primary w-100" onclick="adicionarItem()">
+                                    <button type="button" class="btn btn-primary w-100" onclick="adicionarItem()"
+                                        aria-label="Adicionar item">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
                             </div>
-                            
+
                             <!-- Tabela de Itens -->
                             <div class="table-responsive mb-3">
                                 <table class="table table-sm" id="tabelaItens">
@@ -101,12 +150,13 @@
                                     <tbody></tbody>
                                 </table>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label class="form-label">Observação</label>
-                                <textarea class="form-control" id="observacao" rows="2"></textarea>
+                                <textarea class="form-control" id="observacao" rows="2"
+                                    aria-label="Observação"></textarea>
                             </div>
-                            
+
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-success btn-lg">
                                     <i class="fas fa-save me-2"></i>Registrar Produção
@@ -116,7 +166,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-lg-4">
                 <!-- Lista de Produções Recentes -->
                 <div class="card">
@@ -143,41 +193,41 @@
         if (!checkAuth()) {
             // Redirecionado pelo checkAuth
         }
-        
+
         document.getElementById('usuarioNome').textContent = JSON.parse(localStorage.getItem('usuario') || '{}').nome || '';
-        
+
         // Setar data de hoje
         document.getElementById('dataProducao').valueAsDate = new Date();
-        
+
         let itensProducao = [];
-        
+
         document.addEventListener('DOMContentLoaded', () => {
             carregarProdutos();
             carregarProducoes();
             document.getElementById('producaoForm').addEventListener('submit', salvarProducao);
         });
-        
+
         async function carregarProdutos() {
             try {
                 const produtos = await api.get('/produtos');
                 const select = document.getElementById('produtoSelect');
-                select.innerHTML = '<option value="">Selecione o produto</option>' + 
+                select.innerHTML = '<option value="">Selecione o produto</option>' +
                     produtos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
             } catch (error) {
                 console.error('Erro:', error);
             }
         }
-        
+
         async function carregarProducoes() {
             try {
                 const producoes = await api.get('/producoes');
                 const lista = document.getElementById('listaProducoes');
-                
+
                 if (producoes.length === 0) {
                     lista.innerHTML = '<div class="list-group-item text-center py-4">Nenhuma produção</div>';
                     return;
                 }
-                
+
                 lista.innerHTML = producoes.slice(0, 5).map(p => `
                     <div class="list-group-item">
                         <div class="d-flex justify-content-between">
@@ -191,19 +241,19 @@
                 console.error('Erro:', error);
             }
         }
-        
+
         function adicionarItem() {
             const produtoId = document.getElementById('produtoSelect').value;
             const produtoNome = document.getElementById('produtoSelect').options[document.getElementById('produtoSelect').selectedIndex].text;
             const quantidade = parseInt(document.getElementById('quantidadeItem').value);
             const massa = parseFloat(document.getElementById('massaItem').value);
             const recheio = parseFloat(document.getElementById('recheioItem').value);
-            
+
             if (!produtoId || !quantidade) {
                 alert('Preencha produto e quantidade');
                 return;
             }
-            
+
             itensProducao.push({
                 produto_id: parseInt(produtoId),
                 produto_nome: produtoNome,
@@ -211,15 +261,15 @@
                 massa_usada: massa || 0,
                 recheio_usado: recheio || 0
             });
-            
+
             atualizarTabelaItens();
-            
+
             // Limpar campos
             document.getElementById('quantidadeItem').value = '';
             document.getElementById('massaItem').value = '';
             document.getElementById('recheioItem').value = '';
         }
-        
+
         function atualizarTabelaItens() {
             const tbody = document.querySelector('#tabelaItens tbody');
             tbody.innerHTML = itensProducao.map((item, index) => `
@@ -236,20 +286,20 @@
                 </tr>
             `).join('');
         }
-        
+
         function removerItem(index) {
             itensProducao.splice(index, 1);
             atualizarTabelaItens();
         }
-        
+
         async function salvarProducao(e) {
             e.preventDefault();
-            
+
             if (itensProducao.length === 0) {
                 alert('Adicione pelo menos um item à produção');
                 return;
             }
-            
+
             const dados = {
                 data: document.getElementById('dataProducao').value,
                 massa_produzida: parseFloat(document.getElementById('massaProduzida').value),
@@ -259,11 +309,11 @@
                 observacao: document.getElementById('observacao').value,
                 itens: itensProducao
             };
-            
+
             try {
                 await api.post('/producoes', dados);
                 alert('Produção registrada com sucesso!');
-                
+
                 // Limpar formulário
                 document.getElementById('producaoForm').reset();
                 document.getElementById('dataProducao').valueAsDate = new Date();
@@ -274,12 +324,12 @@
                 alert('Erro: ' + error.message);
             }
         }
-        
+
         function formatarData(dataStr) {
             if (!dataStr) return '';
             return new Date(dataStr).toLocaleDateString('pt-BR');
         }
     </script>
 </body>
-</html>
 
+</html>
